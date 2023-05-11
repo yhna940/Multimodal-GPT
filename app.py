@@ -28,6 +28,7 @@ class Inferencer:
             print("tuning_config not found in checkpoint")
         else:
             print("tuning_config found in checkpoint: ", tuning_config)
+            tuning_config = tuning_config.get("tuning_config")
         model, image_processor, tokenizer = create_model_and_transforms(
             model_name="open_flamingo",
             clip_vision_encoder_path="ViT-L-14",
