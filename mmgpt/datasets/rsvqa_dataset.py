@@ -17,7 +17,7 @@ class RSVQADataset(VQADataset):
         *args,
         **kwargs):
         tmp_ann = self._dump_ann(image_ann_path, question_ann_path, answer_ann_path)
-        super().__init__(*args,ann_paths=[tmp_ann],**kwargs)
+        super().__init__(*args, ann_paths=[tmp_ann], **kwargs)
 
     def _dump_ann(self, image_ann_path: str,
         question_ann_path: str,
@@ -44,11 +44,11 @@ class RSVQADataset(VQADataset):
             result = []
 
             for image_ann in image_anns:
-                questions = [question_index[qid]['question'] for qid in image_ann['question_ids']]
-                answers = [' '.join([answer_index[aid]['answer'] for aid in question_index[qid]['answers_ids']]) for qid in image_ann['question_ids']]
+                questions = [question_index[qid]['question'] for qid in image_ann['questions_ids']]
+                answers = [' '.join([answer_index[aid]['answer'] for aid in question_index[qid]['answers_ids']]) for qid in image_ann['questions_ids']]
 
                 collated_ann = {
-                    "image": image_ann['id'] + ".png",
+                    "image": f"{image_ann['id']}.png",
                     "questions": questions,
                     "answers": answers
                 }
