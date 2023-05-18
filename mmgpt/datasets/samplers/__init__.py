@@ -1,1 +1,1 @@
-from .infinite_sampler import InfiniteSampler
+from .infinite_sampler import InfiniteSampler  # noqa F401

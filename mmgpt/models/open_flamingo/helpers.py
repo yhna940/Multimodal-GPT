@@ -1,6 +1,4 @@
-"""
-Taken from https://github.com/lucidrains/flamingo-pytorch
-"""
+"""Taken from https://github.com/lucidrains/flamingo-pytorch."""
 
 import torch
 from einops import rearrange, repeat
@@ -23,6 +21,7 @@ def FeedForward(dim, mult=4):
 
 
 class PerceiverAttention(nn.Module):
+
     def __init__(self, *, dim, dim_head=64, heads=8):
         super().__init__()
         self.scale = dim_head**-0.5
@@ -52,20 +51,21 @@ class PerceiverAttention(nn.Module):
         q = self.to_q(latents)
         kv_input = torch.cat((x, latents), dim=-2)
         k, v = self.to_kv(kv_input).chunk(2, dim=-1)
-        q, k, v = rearrange_many((q, k, v), "b t n (h d) -> b h t n d", h=h)
+        q, k, v = rearrange_many((q, k, v), 'b t n (h d) -> b h t n d', h=h)
         q = q * self.scale
 
         # attention
-        sim = einsum("... i d, ... j d  -> ... i j", q, k)
+        sim = einsum('... i d, ... j d  -> ... i j', q, k)
         sim = sim - sim.amax(dim=-1, keepdim=True).detach()
         attn = sim.softmax(dim=-1)
 
-        out = einsum("... i j, ... j d -> ... i d", attn, v)
-        out = rearrange(out, "b h t n d -> b t n (h d)", h=h)
+        out = einsum('... i j, ... j d -> ... i d', attn, v)
+        out = rearrange(out, 'b h t n d -> b t n (h d)', h=h)
         return self.to_out(out)
 
 
 class PerceiverResampler(nn.Module):
+
     def __init__(
         self,
         *,
@@ -80,19 +80,20 @@ class PerceiverResampler(nn.Module):
     ):
         super().__init__()
         self.latents = nn.Parameter(torch.randn(num_latents, dim))
-        self.frame_embs = nn.Parameter(torch.randn(max_num_frames, dim)) if exists(max_num_frames) else None
-        self.media_time_embs = nn.Parameter(torch.randn(max_num_media, 1, dim)) if exists(max_num_media) else None
+        self.frame_embs = nn.Parameter(torch.randn(
+            max_num_frames, dim)) if exists(max_num_frames) else None
+        self.media_time_embs = nn.Parameter(
+            torch.randn(max_num_media, 1,
+                        dim)) if exists(max_num_media) else None
 
         self.layers = nn.ModuleList([])
         for _ in range(depth):
             self.layers.append(
-                nn.ModuleList(
-                    [
-                        PerceiverAttention(dim=dim, dim_head=dim_head, heads=heads),
-                        FeedForward(dim=dim, mult=ff_mult),
-                    ]
-                )
-            )
+                nn.ModuleList([
+                    PerceiverAttention(
+                        dim=dim, dim_head=dim_head, heads=heads),
+                    FeedForward(dim=dim, mult=ff_mult),
+                ]))
 
         self.norm = nn.LayerNorm(dim)
 
@@ -108,14 +109,16 @@ class PerceiverResampler(nn.Module):
 
         # frame and media time embeddings
         if exists(self.frame_embs):
-            frame_embs = repeat(self.frame_embs[:F], "F d -> b T F v d", b=b, T=T, v=v)
+            frame_embs = repeat(
+                self.frame_embs[:F], 'F d -> b T F v d', b=b, T=T, v=v)
             x = x + frame_embs
-        x = rearrange(x, "b T F v d -> b T (F v) d")  # flatten the frame and spatial dimensions
+        x = rearrange(x, 'b T F v d -> b T (F v) d'
+                      )  # flatten the frame and spatial dimensions
         if exists(self.media_time_embs):
             x = x + self.media_time_embs[:T]
 
         # blocks
-        latents = repeat(self.latents, "n d -> b T n d", b=b, T=T)
+        latents = repeat(self.latents, 'n d -> b T n d', b=b, T=T)
         for attn, ff in self.layers:
             latents = attn(x, latents) + latents
             latents = ff(latents) + latents
@@ -126,6 +129,7 @@ class PerceiverResampler(nn.Module):
 
 
 class MaskedCrossAttention(nn.Module):
+
     def __init__(
         self,
         *,
@@ -167,14 +171,14 @@ class MaskedCrossAttention(nn.Module):
         x = self.norm(x)
 
         q = self.to_q(x)
-        media = rearrange(media, "b t n d -> b (t n) d")
+        media = rearrange(media, 'b t n d -> b (t n) d')
 
         k, v = self.to_kv(media).chunk(2, dim=-1)
-        q, k, v = rearrange_many((q, k, v), "b n (h d) -> b h n d", h=h)
+        q, k, v = rearrange_many((q, k, v), 'b n (h d) -> b h n d', h=h)
 
         q = q * self.scale
 
-        sim = einsum("... i d, ... j d -> ... i j", q, k)
+        sim = einsum('... i d, ... j d -> ... i j', q, k)
 
         if exists(media_locations):
             # at each boolean of True, increment the time counter (relative to media time)
@@ -184,40 +188,43 @@ class MaskedCrossAttention(nn.Module):
             if not attend_previous:
                 text_time[~media_locations] += 1
                 # make sure max is still the number of images in the sequence
-                text_time[
-                    text_time
-                    > repeat(
-                        torch.count_nonzero(media_locations, dim=1),
-                        "b -> b i",
-                        i=text_time.shape[1],
-                    )
-                ] = 0
+                text_time[text_time > repeat(
+                    torch.count_nonzero(media_locations, dim=1),
+                    'b -> b i',
+                    i=text_time.shape[1],
+                )] = 0
 
-            # text time must equal media time if only attending to most immediate image
-            # otherwise, as long as text time is greater than media time (if attending to all previous images / media)
+            # text time must equal media time
+            # if only attending to most immediate image
+            # otherwise, as long as text time is greater than media time
+            # (if attending to all previous images / media)
             mask_op = torch.eq if self.only_attend_immediate_media else torch.ge
 
             text_to_media_mask = mask_op(
-                rearrange(text_time, "b i -> b 1 i 1"),
-                repeat(media_time, "j -> 1 1 1 (j n)", n=n),
+                rearrange(text_time, 'b i -> b 1 i 1'),
+                repeat(media_time, 'j -> 1 1 1 (j n)', n=n),
             )
-            sim = sim.masked_fill(~text_to_media_mask, -torch.finfo(sim.dtype).max)
+            sim = sim.masked_fill(~text_to_media_mask,
+                                  -torch.finfo(sim.dtype).max)
 
         sim = sim - sim.amax(dim=-1, keepdim=True).detach()
         attn = sim.softmax(dim=-1)
 
         if exists(media_locations) and self.only_attend_immediate_media:
-            # any text without a preceding media needs to have attention zeroed out
+            # any text without a
+            # preceding media needs to have attention zeroed out
             text_without_media_mask = text_time == 0
-            text_without_media_mask = rearrange(text_without_media_mask, "b i -> b 1 i 1")
+            text_without_media_mask = rearrange(text_without_media_mask,
+                                                'b i -> b 1 i 1')
             attn = attn.masked_fill(text_without_media_mask, 0.0)
 
-        out = einsum("... i j, ... j d -> ... i d", attn, v)
-        out = rearrange(out, "b h n d -> b n (h d)")
+        out = einsum('... i j, ... j d -> ... i d', attn, v)
+        out = rearrange(out, 'b h n d -> b n (h d)')
         return self.to_out(out)
 
 
 class GatedCrossAttentionBlock(nn.Module):
+
     def __init__(
         self,
         *,
@@ -254,10 +261,7 @@ class GatedCrossAttentionBlock(nn.Module):
                 media,
                 media_locations=media_locations,
                 attend_previous=attend_previous,
-            )
-            * self.attn_gate.tanh()
-            + x
-        )
+            ) * self.attn_gate.tanh() + x)
         x = self.ff(x) * self.ff_gate.tanh() + x
 
         return x

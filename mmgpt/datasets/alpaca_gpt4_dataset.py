@@ -16,11 +16,11 @@ class AlpacaGPT4Dataset(DollyDataset):
     """
 
     def load_annotation(self, ann_path):
-        self.annotation = json.load(open(ann_path, "r"))
+        self.annotation = json.load(open(ann_path))
 
     def process_text(self, ann):
-        instruction = ann["instruction"]
-        input = ann["input"]
-        output = ann["output"]
+        instruction = ann['instruction']
+        input = ann['input']
+        output = ann['output']
         instruction = self.prompter(instruction=instruction, input=input)
         return dict(instruction=instruction, answer=output)

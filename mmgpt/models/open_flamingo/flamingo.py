@@ -1,4 +1,4 @@
-"""Modified from https://github.com/mlfoundations/open_flamingo"""
+"""Modified from https://github.com/mlfoundations/open_flamingo."""
 import torch
 from einops import rearrange
 from torch import nn
@@ -7,6 +7,7 @@ from .helpers import PerceiverResampler
 
 
 class Flamingo(nn.Module):
+
     def __init__(
         self,
         vision_encoder: nn.Module,
@@ -24,9 +25,13 @@ class Flamingo(nn.Module):
             eoc_token_id (int): Token id for <|endofchunk|>
             media_token_id (int): Token id for <image>
             vis_dim (int): Dimension of the visual features.
-                Visual features are projected to match this shape along the last dimension.
-            cross_attn_every_n_layers (int, optional): How often to apply cross attention after transformer layer. Defaults to 1.
-            use_media_placement_augmentation (bool, optional): Whether to randomly assign images to the preceding or following text in training. Defaults to False.
+                Visual features are projected to match
+                this shape along the last dimension.
+            cross_attn_every_n_layers (int, optional):
+                How often to apply cross attention after transformer layer. Defaults to 1.
+            use_media_placement_augmentation (bool, optional):
+                Whether to randomly assign images to the preceding or following text in training.
+                Defaults to False.
         """
         super().__init__()
         self.eoc_token_id = eoc_token_id
@@ -40,7 +45,8 @@ class Flamingo(nn.Module):
             media_token_id=media_token_id,
             vis_hidden_size=self.vis_dim,
             cross_attn_every_n_layers=cross_attn_every_n_layers,
-            use_media_placement_augmentation=self.use_media_placement_augmentation,
+            use_media_placement_augmentation=self.
+            use_media_placement_augmentation,
         )
 
     def forward(
@@ -54,18 +60,18 @@ class Flamingo(nn.Module):
         past_key_values=None,
         use_cache: bool = False,
     ):
-        """
-        Forward pass of Flamingo.
+        """Forward pass of Flamingo.
 
         Args:
-            vision_x (torch.Tensor): Vision input
+            vision_x (torch.Tensor):
+                Vision input
                 shape (B, T_img, F, C, H, W) with F=1
             lang_x (torch.Tensor): Language input ids
                 shape (B, T_txt)
             attention_mask (torch.Tensor, optional): Attention mask. Defaults to None.
             labels (torch.Tensor, optional): Labels. Defaults to None.
             clear_conditioned_layers: if True, clear the conditioned layers
-                once the foward pass is completed. Set this to false if the
+                once the forward pass is completed. Set this to false if the
                 same set of images will be reused in another subsequent
                 forward pass.
             past_key_values: pre-computed values to pass to language model.
@@ -89,12 +95,12 @@ class Flamingo(nn.Module):
             return output
         assert (
             vision_x is not None
-        ) or use_cached_vision_x, "Must provide either vision_x or use_cached_vision_x to True."
+        ) or use_cached_vision_x, 'Must provide either vision_x or use_cached_vision_x to True.'
 
         if use_cached_vision_x:
             # Case: use cached; vision_x should be cached and other
             # vision-related inputs should not be provided.
-            assert vision_x is None, "Expect vision_x to be None when use_cached_vision_x is True."
+            assert vision_x is None, 'Expect vision_x to be None when use_cached_vision_x is True.'
             assert self.lang_encoder.is_conditioned()
 
         else:
@@ -131,8 +137,7 @@ class Flamingo(nn.Module):
         do_sample=False,
         early_stopping=False,
     ):
-        """
-        Generate text conditioned on vision and language inputs.
+        """Generate text conditioned on vision and language inputs.
 
         Args:
             vision_x (torch.Tensor): Vision input
@@ -193,14 +198,15 @@ class Flamingo(nn.Module):
         rearrange code based on https://github.com/dhansmair/flamingo-mini
         """
 
-        assert vision_x.ndim == 6, "vision_x should be of shape (b, T_img, F, C, H, W)"
+        assert vision_x.ndim == 6, 'vision_x should be of shape (b, T_img, F, C, H, W)'
         b, T, F = vision_x.shape[:3]
-        assert F == 1, "Only single frame supported"
+        assert F == 1, 'Only single frame supported'
 
-        vision_x = rearrange(vision_x, "b T F c h w -> (b T F) c h w")
+        vision_x = rearrange(vision_x, 'b T F c h w -> (b T F) c h w')
         with torch.no_grad():
             vision_x = self.vision_encoder.visual(vision_x)[1]
-        vision_x = rearrange(vision_x, "(b T F) v d -> b T F v d", b=b, T=T, F=F)
+        vision_x = rearrange(
+            vision_x, '(b T F) v d -> b T F v d', b=b, T=T, F=F)
 
         vision_x = self.perceiver(vision_x)  # reshapes to (b, T, n, d)
 

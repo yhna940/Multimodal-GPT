@@ -1,4 +1,4 @@
-"""Modified from https://github.com/mlfoundations/open_flamingo"""
+"""Modified from https://github.com/mlfoundations/open_flamingo."""
 import open_clip
 import torch
 import torch.nn as nn
@@ -21,9 +21,9 @@ def create_model_and_transforms(
     tuning_config=None,
     **flamingo_kwargs,
 ):
-    """
-    Initialize a Flamingo model from a pretrained vision encoder and language encoder.
-    Appends special tokens to the tokenizer and freezes backbones.
+    """Initialize a Flamingo model from a pretrained vision encoder and
+    language encoder. Appends special tokens to the tokenizer and freezes
+    backbones.
 
     Args:
         clip_vision_encoder_path (str): path to pretrained clip model (e.g. "ViT-B-32")
@@ -36,44 +36,46 @@ def create_model_and_transforms(
         Image processor: Pipeline to preprocess input images
         Tokenizer: A tokenizer for the language model
     """
-    print("init clip vision encoder")
+    print('init clip vision encoder')
     vision_encoder, _, image_processor = open_clip.create_model_and_transforms(
-        clip_vision_encoder_path, pretrained=clip_vision_encoder_pretrained
-    )
+        clip_vision_encoder_path, pretrained=clip_vision_encoder_pretrained)
     # set the vision encoder to output the visual features
     vision_encoder.visual.output_tokens = True
-    print("init tokenizer")
+    print('init tokenizer')
     text_tokenizer = LlamaTokenizer.from_pretrained(tokenizer_path)
     # add Flamingo special tokens to the tokenizer
-    text_tokenizer.add_special_tokens({"additional_special_tokens": ["<|endofchunk|>", "<image>"]})
+    text_tokenizer.add_special_tokens(
+        {'additional_special_tokens': ['<|endofchunk|>', '<image>']})
     if text_tokenizer.pad_token is None:
         # Issue: GPT models don't have a pad token, which we use to
         # modify labels for the loss.
-        text_tokenizer.add_special_tokens({"pad_token": "<PAD>"})
+        text_tokenizer.add_special_tokens({'pad_token': '<PAD>'})
     text_tokenizer.bos_token_id = 1
     text_tokenizer.eos_token_id = 2
 
-    print("init llama")
+    print('init llama')
     lang_encoder = LlamaForCausalLM.from_pretrained(lang_encoder_path)
     extend_instance(lang_encoder, FlamingoLMMixin)
 
     if decoder_layers_attr_name is None:
-        decoder_layers_attr_name = _infer_decoder_layers_attr_name(lang_encoder)
+        decoder_layers_attr_name = _infer_decoder_layers_attr_name(
+            lang_encoder)
     lang_encoder.set_decoder_layers_attr_name(decoder_layers_attr_name)
     lang_encoder.resize_token_embeddings(len(text_tokenizer))
 
     model = Flamingo(
         vision_encoder,
         lang_encoder,
-        text_tokenizer.encode("<|endofchunk|>")[-1],
-        text_tokenizer.encode("<image>")[-1],
-        vis_dim=open_clip.get_model_config(clip_vision_encoder_path)["vision_cfg"]["width"],
+        text_tokenizer.encode('<|endofchunk|>')[-1],
+        text_tokenizer.encode('<image>')[-1],
+        vis_dim=open_clip.get_model_config(clip_vision_encoder_path)
+        ['vision_cfg']['width'],
         cross_attn_every_n_layers=4,
         **flamingo_kwargs,
     )
 
     if pretrained_model_path is not None:
-        print(f"loading pretrained model from {pretrained_model_path}")
+        print(f'loading pretrained model from {pretrained_model_path}')
         model.load_state_dict(torch.load(pretrained_model_path), strict=False)
 
     # Freeze all parameters
@@ -83,10 +85,10 @@ def create_model_and_transforms(
     if tuning_config is not None:
         model = prepare_model_for_tuning(model, tuning_config)
     else:
-        raise ValueError("tuning_config must be provided")
+        raise ValueError('tuning_config must be provided')
 
     print(
-        f"Flamingo model initialized with {sum(p.numel() for p in model.parameters() if p.requires_grad)} trainable parameters"
+        f'Flamingo model initialized with {sum(p.numel() for p in model.parameters() if p.requires_grad)} trainable parameters'
     )
 
     return model, image_processor, text_tokenizer
@@ -98,17 +100,17 @@ def _infer_decoder_layers_attr_name(model):
             return __KNOWN_DECODER_LAYERS_ATTR_NAMES[k]
 
     raise ValueError(
-        f"We require the attribute name for the nn.ModuleList in the decoder storing the transformer block layers. Please supply this string manually."
+        'We require the attribute name for the nn.ModuleList in the decoder storing the transformer block layers. Please supply this string manually.'
     )
 
 
 __KNOWN_DECODER_LAYERS_ATTR_NAMES = {
-    "opt": "model.decoder.layers",
-    "gptneo": "transformer.h",
-    "gptj": "transformer.h",
-    "gpt-j": "transformer.h",
-    "pythia": "gpt_neox.layers",
-    "llama": "model.layers",
+    'opt': 'model.decoder.layers',
+    'gptneo': 'transformer.h',
+    'gptj': 'transformer.h',
+    'gpt-j': 'transformer.h',
+    'pythia': 'gpt_neox.layers',
+    'llama': 'model.layers',
 }
 
 
@@ -119,13 +121,14 @@ def prepare_model_for_tuning(model: nn.Module, config):
             lora_alpha=config.lora_alpha,
             target_modules=config.lora_target_modules,
             lora_dropout=config.lora_dropout,
-            bias="none",  # won't use bias currently
+            bias='none',  # won't use bias currently
             modules_to_save=[],  # TODO: might be helpful if save partial model
-            task_type="VL",
+            task_type='VL',
         )
-        model.lang_encoder = get_peft_model(model.lang_encoder, peft_config=lora_config)
+        model.lang_encoder = get_peft_model(
+            model.lang_encoder, peft_config=lora_config)
 
-    # manually unfreeze modules, we use a `substring` fashion mathcing
+    # manually unfreeze modules, we use a `substring` fashion matching
     for name, param in model.named_parameters():
         if any(substr in name for substr in config.unfrozen):
             param.requires_grad = True
