@@ -21,6 +21,7 @@ from transformers import (
 )
 
 from mmgpt import create_model_and_transforms
+from mmgpt.models.builder import create_toy_model_and_transforms
 from mmgpt.datasets import InfiniteSampler, build_dataset
 from mmgpt.train.distributed import init_distributed_device, world_info_from_env
 from mmgpt.train.train_utils import AverageMeter, get_autocast, get_cast_dtype, get_checkpoint
@@ -172,7 +173,7 @@ def main():
         raise ValueError("dataset_config must be specified")
 
     dataset = build_dataset(
-        config=dataset_config.visual_datasets,
+        dataset_config=dataset_config.visual_datasets,
         vis_processor=image_processor,
         tokenizer=tokenizer,
     )
@@ -185,9 +186,9 @@ def main():
     )
 
     # build language dataset and dataloader for multi-modality training
-    if dataset_config.language_datasets is not None and len(args.language_datasets) > 0:
+    if dataset_config.get('language_datasets') is not None and len(dataset_config.language_datasets) > 0:
         lang_dataset = build_dataset(
-            config=dataset_config.language_datasets,
+            dataset_config=dataset_config.language_datasets,
             tokenizer=tokenizer,
         )
         lang_dataloader = DataLoader(
@@ -310,7 +311,7 @@ def main():
                 "model_state_dict": get_checkpoint(ddp_model),
                 "optimizer_state_dict": optimizer.state_dict(),
                 "lr_scheduler_state_dict": lr_scheduler.state_dict(),
-                "tuning_config": tuning_config,
+                "tuning_config": tuning_config.tuning_config,
             }
 
             print(f"Saving checkpoint to {args.run_name}/checkpoint_{epoch}.pt")
@@ -323,7 +324,7 @@ def main():
                     os.remove(f"{args.run_name}/checkpoint_{epoch-1}.pt")
     if args.rank == 0:
         torch.save(
-            {"model_state_dict": get_checkpoint(ddp_model.module), "tuning_config": tuning_config},
+            {"model_state_dict": get_checkpoint(ddp_model.module), "tuning_config": tuning_config.tuning_config},
             f"{args.run_name}/final_weights.pt",
         )
         if args.report_to_wandb and args.save_checkpoints_to_wandb:

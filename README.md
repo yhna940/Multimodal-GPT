@@ -1,12 +1,20 @@
 # 🤖 Multi-modal GPT
 
-Train a multi-modal chatbot with visual and language instructions! 
+Train a multi-modal chatbot with visual and language instructions!
 
 Based on the open-source multi-modal model [OpenFlamingo](https://github.com/mlfoundations/open_flamingo), we create various **visual instruction** data with open datasets, including VQA, Image Captioning, Visual Reasoning, Text OCR, and Visual Dialogue. Additionally, we also train the language model component of OpenFlamingo using only **language-only instruction** data.
 
-The **joint training** of visual and language instructions effectively improves the performance of the model!
+The **joint training** of visual and language instructions effectively improves the performance of the model! For more details please refer to our [technical report](https://arxiv.org/abs/2305.04790).
 
 Welcome to join us!
+
+</div>
+
+<div align="center">
+
+English | [简体中文](README_zh-CN.md)
+
+</div>
 
 <div align="center">
   <a href="https://openmmlab.medium.com/" style="text-decoration:none;">
@@ -27,6 +35,13 @@ Welcome to join us!
   <a href="https://www.zhihu.com/people/openmmlab" style="text-decoration:none;">
     <img src="https://user-images.githubusercontent.com/25839884/219026120-ba71e48b-6e94-4bd4-b4e9-b7d175b5e362.png" width="3%" alt="" /></a>
 </div>
+
+## Online Demo
+
+👉 [***Demo Link***](https://mmgpt.openmmlab.org.cn/)
+
+<img src="https://user-images.githubusercontent.com/12907710/237001772-f6e94884-db35-47a0-9fb8-09c2c6a692ff.png" width="70%" alt="" />
+
 
 ## Features
 
@@ -53,11 +68,11 @@ conda env create -f environment.yml
 ```
 
 
-## Demo
+## Launch Demo Locally
 
 1. Download the pre-trained weights.
 
-    Use [this script](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/convert_llama_weights_to_hf.py) for converting LLaMA weights to HuggingFace format.
+    Use [this script](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/convert_llama_weights_to_hf.py) for converting LLaMA weights to Hugging Face format.
 
     Download the OpenFlamingo pre-trained model from [openflamingo/OpenFlamingo-9B](https://huggingface.co/openflamingo/OpenFlamingo-9B).
 
@@ -163,3 +178,16 @@ torchrun --nproc_per_node=8 mmgpt/train/instruction_finetune.py \
 - [MiniGPT-4](https://github.com/Vision-CAIR/MiniGPT-4)
 - [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main)
 - [Instruction Tuning with GPT-4](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)
+
+If you find our project useful for your research and applications, please cite using this BibTeX:
+
+```bibtex
+@misc{gong2023multimodalgpt,
+      title={MultiModal-GPT: A Vision and Language Model for Dialogue with Humans}, 
+      author={Tao Gong and Chengqi Lyu and Shilong Zhang and Yudong Wang and Miao Zheng and Qian Zhao and Kuikun Liu and Wenwei Zhang and Ping Luo and Kai Chen},
+      year={2023},
+      eprint={2305.04790},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
