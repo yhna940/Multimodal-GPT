@@ -42,7 +42,6 @@
 
 <img src="https://user-images.githubusercontent.com/12907710/237001772-f6e94884-db35-47a0-9fb8-09c2c6a692ff.png" width="70%" alt="" />
 
-
 ## 特性
 
 - 支持各种视觉和语言指令数据
@@ -70,45 +69,50 @@ conda env create -f environment.yml
 
 1. 下载预训练权重
 
-    使用[这个脚本](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/convert_llama_weights_to_hf.py)把 LLaMA 权重转换成 HuggingFace 格式。
+   使用[这个脚本](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/convert_llama_weights_to_hf.py)把 LLaMA 权重转换成 HuggingFace 格式。
 
-    从 [openflamingo/OpenFlamingo-9B](https://huggingface.co/openflamingo/OpenFlamingo-9B) 下载 OpenFlamingo 预训练模型。
+   从 [openflamingo/OpenFlamingo-9B](https://huggingface.co/openflamingo/OpenFlamingo-9B) 下载 OpenFlamingo 预训练模型。
 
-    从[这个链接](https://download.openmmlab.com/mmgpt/v0/mmgpt-lora-v0-release.pt) 下载我们的 LoRA 权重。
+   从[这个链接](https://download.openmmlab.com/mmgpt/v0/mmgpt-lora-v0-release.pt) 下载我们的 LoRA 权重。
 
-    然后把所有模型权重放到 `checkpoints` 文件夹下，目录结构如下：
+   然后把所有模型权重放到 `checkpoints` 文件夹下，目录结构如下：
 
-    ```
-    checkpoints
-    ├── llama-7b_hf
-    │   ├── config.json
-    │   ├── pytorch_model-00001-of-00002.bin
-    │   ├── ......
-    │   └── tokenizer.model
-    ├── OpenFlamingo-9B
-    │   └──checkpoint.pt
-    ├──mmgpt-lora-v0-release.pt
+   ```
+   checkpoints
+   ├── llama-7b_hf
+   │   ├── config.json
+   │   ├── pytorch_model-00001-of-00002.bin
+   │   ├── ......
+   │   └── tokenizer.model
+   ├── OpenFlamingo-9B
+   │   └──checkpoint.pt
+   ├──mmgpt-lora-v0-release.pt
+
+   ```
 
 2. 启动 gradio demo
 
-    ```bash
-    python app.py
-    ```
+   ```bash
+   python app.py
+   ```
 
 ## 示例
 
 ### 菜单：
+
 ![image4](https://user-images.githubusercontent.com/12907710/234554562-8f3be88f-d563-47ba-97d9-ade8d47c46b0.png)
 
 ### 旅行计划：
+
 ![image3](https://user-images.githubusercontent.com/12907710/234523464-80c4e3f0-f99f-4498-96ef-dc43ef89c64b.png)
 
 ### 电影：
+
 ![image2](https://user-images.githubusercontent.com/12907710/234523468-e11905a6-491f-4b87-934f-90da7d14d1c3.png)
 
 ### 名人：
-![image](https://user-images.githubusercontent.com/12907710/234523475-fd91f979-a344-4228-813f-6b55a1bc250f.png)
 
+![image](https://user-images.githubusercontent.com/12907710/234523475-fd91f979-a344-4228-813f-6b55a1bc250f.png)
 
 ## 微调 Fine-tuning
 
@@ -116,40 +120,39 @@ conda env create -f environment.yml
 
 1. [A-OKVQA](https://allenai.org/project/a-okvqa/home)
 
-    从[这个链接](https://prior-datasets.s3.us-east-2.amazonaws.com/aokvqa/aokvqa_v1p0.tar.gz)下载标注，解压到 `data/aokvqa/annotations` 路径下。
+   从[这个链接](https://prior-datasets.s3.us-east-2.amazonaws.com/aokvqa/aokvqa_v1p0.tar.gz)下载标注，解压到 `data/aokvqa/annotations` 路径下。
 
-    同时还需要 coco 数据集的图像，可以从[这里](https://cocodataset.org/#home)下载。
+   同时还需要 coco 数据集的图像，可以从[这里](https://cocodataset.org/#home)下载。
 
 2. [COCO Caption](https://cs.stanford.edu/people/karpathy/deepimagesent/)
 
-    从[这个链接](https://cs.stanford.edu/people/karpathy/deepimagesent/coco.zip)，解压到 `data/coco` 路径下。
+   从[这个链接](https://cs.stanford.edu/people/karpathy/deepimagesent/coco.zip)，解压到 `data/coco` 路径下。
 
-    同时还需要 coco 数据集的图像，可以从[这里](https://cocodataset.org/#home)下载。
+   同时还需要 coco 数据集的图像，可以从[这里](https://cocodataset.org/#home)下载。
 
 3. [OCR VQA](https://ocr-vqa.github.io/)
 
-    从 [这个链接](https://drive.google.com/drive/folders/1_GYPY5UkUy7HIcR0zq3ZCFgeZN7BAfm_?usp=sharing) 下载数据集，放到 `data/OCR_VQA/` 路径下。
+   从 [这个链接](https://drive.google.com/drive/folders/1_GYPY5UkUy7HIcR0zq3ZCFgeZN7BAfm_?usp=sharing) 下载数据集，放到 `data/OCR_VQA/` 路径下。
 
 4. [LlaVA](https://llava-vl.github.io/)
 
-    从 [liuhaotian/LLaVA-Instruct-150K](https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K) 下载数据集，放到 `data/llava/` 路径下。
+   从 [liuhaotian/LLaVA-Instruct-150K](https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K) 下载数据集，放到 `data/llava/` 路径下。
 
-    同时还需要 coco 数据集的图像，可以从[这里](https://cocodataset.org/#home)下载。
+   同时还需要 coco 数据集的图像，可以从[这里](https://cocodataset.org/#home)下载。
 
 5. [Mini-GPT4](https://minigpt-4.github.io/)
 
-    从 [Vision-CAIR/cc_sbu_align](https://huggingface.co/datasets/Vision-CAIR/cc_sbu_align) 下载数据集，放到 `data/cc_sbu_align/` 路径下。
+   从 [Vision-CAIR/cc_sbu_align](https://huggingface.co/datasets/Vision-CAIR/cc_sbu_align) 下载数据集，放到 `data/cc_sbu_align/` 路径下。
 
 6. [Dolly 15k](https://www.databricks.com/blog/2023/03/24/hello-dolly-democratizing-magic-chatgpt-open-models.html)
 
-    从 [databricks/databricks-dolly-15k](https://huggingface.co/datasets/databricks/databricks-dolly-15k) 下载数据集，放到 `data/dolly/databricks-dolly-15k.jsonl` 路径下。
+   从 [databricks/databricks-dolly-15k](https://huggingface.co/datasets/databricks/databricks-dolly-15k) 下载数据集，放到 `data/dolly/databricks-dolly-15k.jsonl` 路径下。
 
 7. [Alpaca GPT4](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)
 
-    从[这个链接](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM/raw/main/data/alpaca_gpt4_data.json) 下载数据集，放到 `data/alpaca_gpt4/alpaca_gpt4_data.json` 路径下。
+   从[这个链接](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM/raw/main/data/alpaca_gpt4_data.json) 下载数据集，放到 `data/alpaca_gpt4/alpaca_gpt4_data.json` 路径下。
 
 你也可以在 [configs/dataset_config.py](configs/dataset_config.py) 文件中自定义数据集路径。
-
 
 ## 开启训练
 
@@ -161,12 +164,11 @@ torchrun --nproc_per_node=8 mmgpt/train/instruction_finetune.py \
   --run_name train-my-gpt4 \
   --learning_rate 1e-5 \
   --lr_scheduler cosine \
-  --batch_size 1 \ 
+  --batch_size 1 \
   --tuning_config configs/lora_config.py \
   --dataset_config configs/dataset_config.py \
   --report_to_wandb
 ```
-
 
 ## 致谢
 
@@ -181,7 +183,7 @@ torchrun --nproc_per_node=8 mmgpt/train/instruction_finetune.py \
 
 ```bibtex
 @misc{gong2023multimodalgpt,
-      title={MultiModal-GPT: A Vision and Language Model for Dialogue with Humans}, 
+      title={MultiModal-GPT: A Vision and Language Model for Dialogue with Humans},
       author={Tao Gong and Chengqi Lyu and Shilong Zhang and Yudong Wang and Miao Zheng and Qian Zhao and Kuikun Liu and Wenwei Zhang and Ping Luo and Kai Chen},
       year={2023},
       eprint={2305.04790},
